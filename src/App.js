@@ -24,12 +24,25 @@ function App() {
   const [scores, setScores] = useState(() => JSON.parse(localStorage.getItem('scores') || '[]'));
   const [message, setMessage] = useState('');
 
+  const initPi = async () => {
+    try {
+      await window.Pi.init({ version: "2.0", sandbox: true });
+      const auth = await window.Pi.authenticate(['username', 'payments'], () => {});
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: auth.accessToken })
+      });
+      const data = await response.json();
+      setPiUser(data.username);
+    } catch (e) {
+      console.log('Pi auth failed', e);
+    }
+  };
+
   useEffect(() => {
     setTimeout(() => {
-      window.Pi && window.Pi.init({ version: "2.0", sandbox: true })
-        .then(() => window.Pi.authenticate(['username', 'payments'], () => {}))
-        .then(auth => setPiUser(auth.user.username))
-        .catch(() => {});
+      window.Pi && initPi();
     }, 300);
   }, []);
 
@@ -68,10 +81,7 @@ function App() {
       setTimeout(newWord, 800);
     } else {
       setLives(l => {
-        if (l - 1 <= 0) {
-          setScreen('gameover');
-          return 0;
-        }
+        if (l - 1 <= 0) { setScreen('gameover'); return 0; }
         setMessage('❌ Wrong!');
         setTimeout(newWord, 800);
         return l - 1;
@@ -80,12 +90,12 @@ function App() {
     setInput('');
   };
 
-  const saveScore = () => {
+  const saveScore = useCallback(() => {
     const newScores = [...scores, { name: piUser || 'Guest', score }]
       .sort((a, b) => b.score - a.score).slice(0, 10);
     setScores(newScores);
     localStorage.setItem('scores', JSON.stringify(newScores));
-  };
+  }, [scores, piUser, score]);
 
   useEffect(() => {
     if (screen === 'gameover') saveScore();
@@ -135,16 +145,16 @@ function App() {
     <div style={{ minHeight: '100vh', background: '#1a0533', color: 'white', fontFamily: 'sans-serif', padding: '20px' }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
         <h1 style={{ fontSize: '2.5rem', color: '#f59e0b', margin: '20px 0' }}>🔤 Word Scramble Pi</h1>
-       {piUser ? (
-  <p style={{ color: '#c4b5fd' }}>👤 {piUser}</p>
-) : (
-  <button
-    onClick={() => window.Pi && window.Pi.authenticate(['username', 'payments'], () => {}).then(auth => setPiUser(auth.user.username))}
-    style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px' }}>
-    🔑 Sign in with Pi
-  </button>
-)}
-        <button onClick={handleTip} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 14px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px' }}>
+        {piUser ? (
+          <p style={{ color: '#c4b5fd' }}>👤 {piUser}</p>
+        ) : (
+          <button onClick={initPi}
+            style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px' }}>
+            🔑 Sign in with Pi
+          </button>
+        )}
+        <button onClick={handleTip}
+          style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 14px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px', marginLeft: '10px' }}>
           💰 Tip Developer
         </button>
 
