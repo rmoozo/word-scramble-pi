@@ -135,7 +135,15 @@ function App() {
     <div style={{ minHeight: '100vh', background: '#1a0533', color: 'white', fontFamily: 'sans-serif', padding: '20px' }}>
       <div style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
         <h1 style={{ fontSize: '2.5rem', color: '#f59e0b', margin: '20px 0' }}>🔤 Word Scramble Pi</h1>
-        {piUser && <p style={{ color: '#c4b5fd' }}>👤 {piUser}</p>}
+       {piUser ? (
+  <p style={{ color: '#c4b5fd' }}>👤 {piUser}</p>
+) : (
+  <button
+    onClick={() => window.Pi && window.Pi.authenticate(['username', 'payments'], () => {}).then(auth => setPiUser(auth.user.username))}
+    style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '10px' }}>
+    🔑 Sign in with Pi
+  </button>
+)}
         <button onClick={handleTip} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 14px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '20px' }}>
           💰 Tip Developer
         </button>
