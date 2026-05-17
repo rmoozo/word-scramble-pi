@@ -24,21 +24,15 @@ function App() {
   const [scores, setScores] = useState(() => JSON.parse(localStorage.getItem('scores') || '[]'));
   const [message, setMessage] = useState('');
 
-  const initPi = async () => {
-    try {
-      await window.Pi.init({ version: "2.0", sandbox: true });
-      const auth = await window.Pi.authenticate(['username', 'payments'], () => {});
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: auth.accessToken })
-      });
-      const data = await response.json();
-      setPiUser(data.username);
-    } catch (e) {
-      console.log('Pi auth failed', e);
-    }
-  };
+ const initPi = async () => {
+  try {
+    await window.Pi.init({ version: "2.0", sandbox: true });
+    const auth = await window.Pi.authenticate(['username', 'payments'], () => {});
+    setPiUser(auth.user.username);
+  } catch (e) {
+    console.log('Pi auth failed', e);
+  }
+};
 
   useEffect(() => {
     setTimeout(() => {
