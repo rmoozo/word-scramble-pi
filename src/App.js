@@ -34,11 +34,15 @@ function App() {
   }
 };
 
-  useEffect(() => {
-    setTimeout(() => {
+ useEffect(() => {
+  if (window.Pi) {
+    initPi();
+  } else {
+    window.addEventListener('load', () => {
       window.Pi && initPi();
-    }, 300);
-  }, []);
+    });
+  }
+}, []);
 
   const newWord = useCallback(() => {
     const list = WORDS[category];
